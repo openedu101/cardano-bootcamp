@@ -10,7 +10,7 @@
 Reference documents:
 
 - [Generate address script](./00-generate-keys-and-addr.sh)
-- [Create simple transaction to transfer **ADA** between 2 addresses](./05-simple-tnx.sh)
+- [Create simple transaction to transfer **ADA** between 2 addresses](./01-simple-tnx.sh)
 - [cardano testnets faucet](https://docs.cardano.org/cardano-testnets/tools/faucet/)
 - [EUTxO crash course](https://aiken-lang.org/fundamentals/eutxo)
 - https://demeter.run/

@@ -4,7 +4,7 @@
 - Cardano-cli
     - Query on-chain data with cardano-cli
     - Transfer ADA via cardano-cli
-- Setup develop environment on [demeter.run](demeter.run)
+- Setup develop environment on [demeter.run](https://demeter.run)
 
 
 Reference documents:

@@ -1,9 +1,11 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useLucid } from "./context/LucidProvider";
 import { HelloWorldValidator } from "./components/HelloWorldValidator";
+import { MintTokenValidator } from "./components/MintTokenValidator";
 
 function App() {
   const { connectWallet, address, getUTxOs, lucid } = useLucid();
+  const [txHash, setTxHash] = useState<string>("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -24,7 +26,7 @@ function App() {
 
     const txHash = await signedTx?.submit();
 
-    console.log(txHash);
+    setTxHash(txHash);
   }
 
   return (
@@ -53,9 +55,15 @@ function App() {
         >
           Send ADA
         </button>
+        {txHash && (
+          <div className="bg-gray-100 p-4 rounded">
+            <p className="text-sm">Transaction hash: <a href={`https://preprod.cardanoscan.io/transaction/${txHash}`} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">{txHash}</a></p>
+          </div>
+        )}
       </div>
 
       <HelloWorldValidator />
+      <MintTokenValidator />
     </div>
   )
 }

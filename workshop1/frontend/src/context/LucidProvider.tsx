@@ -24,6 +24,7 @@ export function LucidProvider({ children }: { children: ReactNode }) {
                     "Preprod",
                 );
                 setLucid(lucidInstance);
+
             } catch (error) {
                 console.error("Failed to initialize Lucid:", error);
             }

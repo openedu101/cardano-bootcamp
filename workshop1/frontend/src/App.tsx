@@ -1,8 +1,9 @@
 import { useEffect } from "react";
 import { useLucid } from "./context/LucidProvider";
+import { HelloWorldValidator } from "./components/HelloWorldValidator";
 
 function App() {
-  const { connectWallet, address, getDatum, getUTxOs, lucid } = useLucid();
+  const { connectWallet, address, getUTxOs, lucid } = useLucid();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -29,9 +30,9 @@ function App() {
   return (
     <div className="container mx-auto p-8">
       <h1 className="text-4xl font-bold mb-8">Cardano Wallet Demo</h1>
-      
+
       <div className="flex flex-col gap-4">
-        <button 
+        <button
           onClick={connectWallet}
           className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
         >
@@ -53,6 +54,8 @@ function App() {
           Send ADA
         </button>
       </div>
+
+      <HelloWorldValidator />
     </div>
   )
 }

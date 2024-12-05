@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Data, fromText, MintingPolicy, PolicyId, Script, Unit } from "lucid-cardano";
+import { fromText, Script } from "lucid-cardano";
 import { useLucid } from '../context/LucidProvider';
 
 export const MintTokenValidator = () => {
@@ -82,30 +82,30 @@ export const MintTokenValidator = () => {
     };
 
     return (
-        <div className="mt-8 border-t pt-8">
-            <h2 className="text-2xl font-bold mb-4">Mint/Burn Tokens</h2>
-            <div className="flex flex-col gap-4 p-4 bg-white shadow rounded">
+        <div className="mt-8 border-t border-white/30 pt-8">
+            <h2 className="text-3xl font-extrabold mb-6 text-white bg-gradient-to-r from-purple-400 to-blue-400 inline-block text-transparent bg-clip-text">Mint Tokens</h2>
+            <div className="flex flex-col gap-4 p-8 bg-gradient-to-br from-purple-500/30 to-blue-500/30 backdrop-blur-md border border-white/30 rounded-xl shadow-2xl">
                 <div className="flex flex-col gap-4">
-                    <div className="flex gap-4 items-center">
-                        <label className="flex items-center">
+                    <div className="flex gap-4 items-center text-white/90">
+                        <label className="flex items-center cursor-pointer hover:text-white transition-colors">
                             <input
                                 type="radio"
                                 name="tokenType"
                                 value="nft"
                                 checked={!isFungible}
                                 onChange={handleTypeChange}
-                                className="mr-2"
+                                className="mr-2 accent-purple-400"
                             />
                             NFT
                         </label>
-                        <label className="flex items-center">
+                        <label className="flex items-center cursor-pointer hover:text-white transition-colors">
                             <input
                                 type="radio"
                                 name="tokenType"
                                 value="ft"
                                 checked={isFungible}
                                 onChange={handleTypeChange}
-                                className="mr-2"
+                                className="mr-2 accent-purple-400"
                             />
                             Fungible Token
                         </label>
@@ -117,30 +117,30 @@ export const MintTokenValidator = () => {
                             value={quantity}
                             onChange={(e) => setQuantity(parseInt(e.target.value))}
                             placeholder="Quantity"
-                            className="border rounded p-2"
+                            className="bg-white/10 hover:bg-white/15 border border-white/30 rounded-lg p-3 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-purple-400/50 transition-all"
                         />
                     )}
                     <input
                         type="text"
                         placeholder="NFT Name"
-                        className="border rounded p-2"
+                        className="bg-white/10 hover:bg-white/15 border border-white/30 rounded-lg p-3 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-purple-400/50 transition-all"
                         onChange={(e) => setName(e.target.value)}
                     />
                     <input
                         type="text"
-                        placeholder="Description" 
-                        className="border rounded p-2"
+                        placeholder="Description"
+                        className="bg-white/10 hover:bg-white/15 border border-white/30 rounded-lg p-3 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-purple-400/50 transition-all"
                         onChange={(e) => setDescription(e.target.value)}
                     />
                     <input
                         type="text"
                         placeholder="Image URL"
-                        className="border rounded p-2"
+                        className="bg-white/10 hover:bg-white/15 border border-white/30 rounded-lg p-3 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-purple-400/50 transition-all"
                         onChange={(e) => setImage(e.target.value)}
                     />
                     <div className="flex gap-4">
                         <button
-                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                            className="bg-gradient-to-r from-purple-500/80 to-blue-500/80 hover:from-purple-500/90 hover:to-blue-500/90 text-white font-bold py-3 px-8 rounded-lg border border-white/30 transition-all duration-200 shadow-lg"
                             onClick={mintAssetService}
                             disabled={loading}
                         >
@@ -149,14 +149,14 @@ export const MintTokenValidator = () => {
                     </div>
                 </div>
                 {txHash && (
-                    <div className="bg-gray-100 p-4 rounded">
-                        <p className="text-sm">
+                    <div className="bg-white/10 border border-white/30 p-4 rounded-lg mt-4">
+                        <p className="text-sm text-white/90">
                             Transaction hash:
-                            <a 
+                            <a
                                 href={`https://preprod.cardanoscan.io/transaction/${txHash}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="font-mono ml-2 break-all text-blue-500 hover:text-blue-700"
+                                className="font-mono ml-2 break-all text-purple-200 hover:text-purple-100"
                             >
                                 {txHash}
                             </a>

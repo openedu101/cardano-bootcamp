@@ -1,8 +1,8 @@
 import { MintTokenValidator } from "./components/MintTokenValidator";
 import NFTMarketplace from "./components/NFTMarketplace";
 import Header from "./components/Header";
-import { SellNFT } from "./components/SellNFT";
 import { MarketplaceValidator } from "./components/MarketplaceValidator";
+import { SellNFT } from "./components/SellNFT";
 
 function App() {
   return (
@@ -12,7 +12,8 @@ function App() {
         <div className="grid gap-8">
           <NFTMarketplace />
           <MintTokenValidator />
-          <MarketplaceValidator />
+          {/* <MarketplaceValidator /> */}
+          <SellNFT />
         </div>
       </div>
     </div>

@@ -28,8 +28,8 @@ export const MarketplaceValidator = () => {
 
       const feeMarket = (BigInt(priceNFT) * 1n * 10n ** 6n) / 100n; // 1% fee of the price
 
-      const policyId = "cfdd1d99ec7d58e54a549a88f19aa60bca7f636c2af7e5fb63f0494e";
-      const assetName = "74657374343536";
+      const policyId = "faec96920bee7c199f6a334b004cadb25e0c7c47db34da2eb707331b";
+      const assetName = "54657374343536";
 
       const datum = Data.to(
         {
@@ -85,8 +85,8 @@ export const MarketplaceValidator = () => {
       }
 
       // const feeMarket 
-      const policyId = "cfdd1d99ec7d58e54a549a88f19aa60bca7f636c2af7e5fb63f0494e";
-      const assetName = "74657374343536";
+      const policyId = "faec96920bee7c199f6a334b004cadb25e0c7c47db34da2eb707331b";
+      const assetName = "54657374343536";
 
       const scriptUTxOs = await lucid?.utxosAt(contractAddress); // get utxos at contract address
 
@@ -116,15 +116,6 @@ export const MarketplaceValidator = () => {
       // });
 
       const sellerAddress = "addr_test1qr7xvrx6zea988hz5juazw32qyfmh5jg6z9euursqs390pz62landnfc3ggslmdvaglwmuquuxt2pkkxctzp0adfrxasyzm9m9"
-
-      // if (!address) {
-      //   throw new Error("Address not found");
-      // }
-
-      // const redeemer = Data.void();
-      // console.log("redeemer", redeemer)
-
-      console.log("utxos", utxos)
 
       const tx = await lucid?.newTx().payToAddress(sellerAddress, { lovelace: utxoNft?.price }).payToAddress(marketAddress, { lovelace: feeMarket }).collectFrom(utxos as UTxO[], Data.void()).attachSpendingValidator(validator).complete();
 

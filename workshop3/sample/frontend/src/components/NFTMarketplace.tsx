@@ -1,61 +1,118 @@
 import React, { useState, useEffect } from 'react';
-
-interface NFT {
-  id: number;
-  name: string;
-  description: string;
-  image: string;
-  price: string;
-  owner: string;
+import { useLucid } from '../context/LucidProvider';
+import { UTxO } from 'lucid-cardano';
+import NFTMarketplaceService from '../services/nft-marketplace';
+import { Data } from 'lucid-cardano';
+import { MarketplaceDatum } from '../validators/nft-marketplace/datum';
+import getMarketplaceValidator from '../validators/nft-marketplace';
+export interface NFTListing {
+  address: string;
+  assetName: string;
+  assets: {
+    [policyId: string]: string;
+  };
+  datum: string;
+  datumHash?: string;
+  outputIndex: number;
+  policyId: string;
+  price: bigint;
+  scriptRef?: string;
+  seller: string;
+  txHash: string;
 }
 
 const NFTMarketplace: React.FC = () => {
-  const [nfts, setNfts] = useState<NFT[]>([]);
+  const [nfts, setNfts] = useState<NFTListing[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [price, setPrice] = useState<string>('');
+  const { lucid } = useLucid();
+  const [txHash, setTxHash] = useState<string>("");
 
-  // Mock data - replace with actual NFT contract calls
   useEffect(() => {
     const fetchNFTs = async () => {
-      // Simulate API call
-      const mockNFTs: NFT[] = [
-        {
-          id: 1,
-          name: "Cool NFT #1",
-          description: "A very cool NFT",
-          image: "https://placeholder.com/150",
-          price: "0.1",
-          owner: "0x123..."
-        },
-        // Add more mock NFTs here
-      ];
-      setNfts(mockNFTs);
+      const nftMarketplaceService = new NFTMarketplaceService(lucid);
+      const scriptUTxOs = await nftMarketplaceService.getUTxOs();
+
+      const utxos = scriptUTxOs?.map((utxo) => {
+        try {
+          const temp = Data.from<MarketplaceDatum>(utxo.datum, MarketplaceDatum);
+          return {
+            ...utxo,
+            ...temp
+          }
+        } catch (error) {
+          return false;
+        }
+      }).filter(Boolean) as NFTListing[];
+
+      setNfts(utxos || []);
       setLoading(false);
     };
 
     fetchNFTs();
-  }, []);
+  }, [lucid]);
 
-  const buyNFT = async (nftId: number, price: string) => {
+  const buyNFT = async (nft: NFTListing) => {
     try {
-      // Add your web3 logic here to purchase NFT
-      console.log(`Buying NFT ${nftId} for ${price} ETH`);
-      // Implement actual purchase logic with smart contract
-    } catch (error) {
-      console.error('Error buying NFT:', error);
-    }
-  };
+      const validator = getMarketplaceValidator();
 
-  const sellNFT = async (nftId: number) => {
-    try {
-      if (!price) return;
-      // Add your web3 logic here to list NFT for sale
-      console.log(`Listing NFT ${nftId} for ${price} ETH`);
-      // Implement actual listing logic with smart contract
+      const contractAddress = lucid?.utils.validatorToAddress(validator)
+
+      if (!contractAddress) {
+        throw new Error("Contract address not found");
+      }
+
+      // const feeMarket 
+      const policyId = nft.policyId;
+      const assetName = nft.assetName;
+
+      const scriptUTxOs = await lucid?.utxosAt(contractAddress); // get utxos at contract address
+
+      const marketAddress = "addr_test1qqh6c35y50368n68uw8mqmp09n94acqeyhxnhzme582c63fpyhlgnl7ygwz524ppsrgk30k8kdsqgek5mht9ffsdtf5snjnge0";
+
+      const feeMarket = (BigInt(nft.price) * 1n * 10n ** 6n) / 100n; // 1% fee of the price
+
+      let utxoNft;
+      const utxos = scriptUTxOs?.filter((utxo) => {
+        try {
+          const temp = Data.from<MarketplaceDatum>(utxo.datum, MarketplaceDatum);
+          // console.log("temp", temp);
+          if (temp.assetName === assetName && temp.policyId === policyId) {
+            utxoNft = temp;
+            return true;
+          } else {
+            return false;
+          }
+        } catch (error) {
+          return false;
+        }
+      });
+
+      const sellerAddressCredential = lucid?.utils.keyHashToCredential(
+        utxoNft?.seller
+      );
+      console.log("sellerAddressCredential", sellerAddressCredential);
+
+      const sellerAddress = lucid?.utils.credentialToAddress(sellerAddressCredential);
+      console.log("sellerAddress", sellerAddress);
+      
+      // const sellerAddress = "addr_test1qr7xvrx6zea988hz5juazw32qyfmh5jg6z9euursqs390pz62landnfc3ggslmdvaglwmuquuxt2pkkxctzp0adfrxasyzm9m9"
+
+
+      const tx = await lucid?.newTx().payToAddress(sellerAddress, { lovelace: utxoNft?.price }).payToAddress(marketAddress, { lovelace: feeMarket }).collectFrom(utxos as UTxO[], Data.void()).attachSpendingValidator(validator).complete();
+
+      if (!tx) {
+        throw new Error("Transaction not found");
+      }
+
+      const signedTx = await tx.sign().complete();
+
+      const txHash = await signedTx.submit();
+
+      setTxHash(txHash);
     } catch (error) {
-      console.error('Error selling NFT:', error);
+      console.error("Error unlocking ADA:", error);
     }
-  };
+  }
 
   if (loading) {
     return <div>Loading NFTs...</div>;
@@ -67,48 +124,54 @@ const NFTMarketplace: React.FC = () => {
         <h1 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 mb-4">
           NFT Marketplace
         </h1>
+        {txHash && (
+          <div className="mt-4 p-4 bg-green-100 text-green-700 rounded-lg">
+            <p>Purchase successful! Transaction Hash:</p>
+            <a
+              href={`https://preprod.cardanoscan.io/transaction/${txHash}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-green-600 hover:text-green-800 underline break-all"
+            >
+              {txHash}
+            </a>
+          </div>
+        )}
         <p className="text-gray-600 text-xl max-w-2xl mx-auto">
           Discover unique digital assets and join the future of digital collectibles. Buy, sell, and trade NFTs with ease.
         </p>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {nfts.map((nft) => (
-          <div key={nft.id} className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
-            <div className="relative">
-              <img
-                src={nft.image}
-                alt={nft.name}
-                className="w-full h-64 object-cover rounded-t-lg"
-              />
-              <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1">
-                <span className="text-purple-600 text-sm">{nft.name}</span>
-              </div>
+        {nfts.map((nft, index) => (
+          <div
+            key={`${nft.txHash}-${nft.outputIndex}`}
+            className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
+          >
+            {/* NFT Image Placeholder */}
+            <div className="aspect-square bg-gray-200 flex items-center justify-center">
+              <span className="text-gray-400">NFT Image</span>
             </div>
-            
+
+            {/* NFT Details */}
             <div className="p-4">
-              <div className="flex items-center space-x-2 mb-3">
-                <div className="w-8 h-8 bg-gray-200 rounded-full overflow-hidden">
-                  {/* Owner avatar placeholder */}
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-gray-600 truncate">{nft.owner}</p>
-                  <p className="text-sm font-medium">{nft.price} Ⓝ</p>
-                </div>
+              <h3 className="font-semibold text-lg mb-2 truncate">
+                {nft.assetName}
+              </h3>
+
+              <div className="text-sm text-gray-600 mb-3">
+                <p className="truncate">Policy ID: {nft.policyId}</p>
+                <p className="mt-1">
+                  Price: {Number(nft.price) / 1_000_000} ₳
+                </p>
               </div>
 
-              <div className="flex items-center justify-between text-sm text-gray-500">
-                <div className="flex items-center space-x-1">
-                  <span>PolicyID</span>
-                  <span className="font-mono">{nft.id.toString(16).padStart(8, '0')}</span>
-                </div>
-                <button className="text-purple-600">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M8 2a1 1 0 000 2h2a1 1 0 100-2H8z" />
-                    <path d="M3 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v6h-4.586l1.293-1.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L10.414 13H15v3a2 2 0 01-2 2H5a2 2 0 01-2-2V5z" />
-                  </svg>
-                </button>
-              </div>
+              <button
+                onClick={() => { buyNFT(nfts[index]) }}
+                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2 px-4 rounded-lg hover:opacity-90 transition-opacity"
+              >
+                Buy NFT
+              </button>
             </div>
           </div>
         ))}
